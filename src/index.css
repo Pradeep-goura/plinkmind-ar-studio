@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* PROVISIONAL design tokens - estimated from a screenshot, not official brand values */
+@theme static {
+  --color-brand-ink: #0b0b0c;
+  --color-brand-silver: #c5d0d3;
+  --color-brand-paper: #ffffff;
+  --color-brand-warm: #e8e2d8;
+  --color-brand-link: #2f6bff;
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --radius-card: 1.5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--color-brand-silver);
+  color: var(--color-brand-ink);
+  font-family: var(--font-sans);
+}
