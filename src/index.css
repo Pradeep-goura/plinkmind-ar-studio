@@ -6,7 +6,7 @@
   --color-brand-silver: #c5d0d3;
   --color-brand-paper: #ffffff;
   --color-brand-warm: #e8e2d8;
-  --color-brand-link: #2f6bff;
+  --color-brand-link: #1d4ed8;
   --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --radius-card: 1.5rem;
 }
@@ -16,4 +16,10 @@ body {
   background: var(--color-brand-silver);
   color: var(--color-brand-ink);
   font-family: var(--font-sans);
+}
+
+/* Visible keyboard focus for every interactive element */
+:focus-visible {
+  outline: 2px solid var(--color-brand-link);
+  outline-offset: 2px;
 }
