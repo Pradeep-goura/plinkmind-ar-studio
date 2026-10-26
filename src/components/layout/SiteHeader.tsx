@@ -20,7 +20,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="mx-auto max-w-6xl px-4 py-5">
+        <header className="mx-auto w-full max-w-6xl px-4 py-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3" aria-label="Plinkmind AR Studio home">
           <PlinkmindMark />

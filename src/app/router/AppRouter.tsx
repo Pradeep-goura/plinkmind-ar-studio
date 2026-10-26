@@ -9,7 +9,7 @@ import { DashboardPage } from '../../pages/DashboardPage'
 import { PrivacyPage } from '../../pages/PrivacyPage'
 import { TermsPage } from '../../pages/TermsPage'
 import { NotFoundPage } from '../../pages/NotFoundPage'
-
+import { StatusPage } from '../../pages/StatusPage'
 export function AppRouter() {
   return (
     <Routes>
@@ -20,6 +20,7 @@ export function AppRouter() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+                <Route path="/status" element={<StatusPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
       <Route element={<DashboardLayout />}>
