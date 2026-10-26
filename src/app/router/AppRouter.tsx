@@ -13,6 +13,7 @@ import { ResetPasswordPage } from '../../pages/ResetPasswordPage'
 import { SignInPage } from '../../pages/SignInPage'
 import { StatusPage } from '../../pages/StatusPage'
 import { TermsPage } from '../../pages/TermsPage'
+import { AssetsPage } from '../../pages/AssetsPage'
 
 export function AppRouter() {
   return (
@@ -32,6 +33,7 @@ export function AppRouter() {
       <Route element={<RequireAuth />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/dashboard/assets" element={<AssetsPage />} />
         </Route>
       </Route>
     </Routes>

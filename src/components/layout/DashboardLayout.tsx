@@ -4,7 +4,7 @@ import { Button } from '../ui/Button'
 import { StatusBadge } from '../ui/StatusBadge'
 import { PlinkmindMark } from './PlinkmindMark'
 
-const plannedItems = ['Assets', 'Team', 'Settings']
+const plannedItems = ['Team', 'Settings']
 
 export function DashboardLayout() {
   const { user, signOut } = useAuth()
@@ -36,6 +36,16 @@ export function DashboardLayout() {
             }
           >
             Projects
+          </NavLink>
+                    <NavLink
+            to="/dashboard/assets"
+            className={({ isActive }) =>
+              `rounded-md px-3 py-2 text-sm font-medium ${
+                isActive ? 'bg-brand-ink text-brand-paper' : 'hover:bg-black/10'
+              }`
+            }
+          >
+            Assets
           </NavLink>
           {plannedItems.map((item) => (
             <span
