@@ -15,3 +15,5 @@ Do not deploy publicly until all of these are done:
 - [ ] Review licenses: three.js (MIT) and the Draco decoder files in public/draco (Apache-2.0)
 - [ ] Re-run supabase/tests/assets_isolation.sql after every storage change
 - [ ] Check total storage limit on the Supabase Usage page
+- [ ] Re-run supabase/tests/scenes_isolation.sql after every schema change
+- [ ] Validate scene data on the server when publishing (a scene may reference an asset from another workspace)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Button } from '../../components/ui/Button'
+import { Button, ButtonLink } from '../../components/ui/Button'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import type { Project } from '../../types/project'
 
@@ -90,7 +90,7 @@ export function ProjectCard({ project, busy, onRename, onDuplicate, onDelete }: 
           <Button variant="outline" disabled={busy} onClick={() => setMode('rename')}>Rename</Button>
           <Button variant="outline" disabled={busy} onClick={onDuplicate}>Duplicate</Button>
           <Button variant="outline" disabled={busy} onClick={() => setMode('delete')}>Delete</Button>
-          <Button variant="outline" disabled>Open editor (planned)</Button>
+                    <ButtonLink to={`/dashboard/projects/${project.id}/editor`} variant="outline">Open editor</ButtonLink>
         </div>
       )}
     </li>

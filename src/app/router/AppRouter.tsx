@@ -14,7 +14,7 @@ import { SignInPage } from '../../pages/SignInPage'
 import { StatusPage } from '../../pages/StatusPage'
 import { TermsPage } from '../../pages/TermsPage'
 import { AssetsPage } from '../../pages/AssetsPage'
-
+import { EditorPage } from '../../pages/EditorPage'
 export function AppRouter() {
   return (
     <Routes>
@@ -32,6 +32,7 @@ export function AppRouter() {
       </Route>
       <Route element={<RequireAuth />}>
         <Route element={<DashboardLayout />}>
+                <Route path="/dashboard/projects/:projectId/editor" element={<EditorPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/dashboard/assets" element={<AssetsPage />} />
         </Route>

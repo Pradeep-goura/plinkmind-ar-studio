@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { supabase } from '../../lib/supabase/client'
 import type { Project, TrackingMode } from '../../types/project'
+import { copyScene } from '../editor/scenesApi'
 
 const columns = 'id, name, status, tracking_mode, updated_at'
 
@@ -72,8 +73,15 @@ export async function renameProject(id: string, name: string): Promise<Project> 
 }
 
 export async function duplicateProject(workspaceId: string, project: Project): Promise<Project> {
-  // Only name and tracking mode exist today. Scene data will be copied once scenes exist.
-  return createProject(workspaceId, `Copy of ${project.name}`.slice(0, 100), project.trackingMode)
+  const copy = await createProject(workspaceId, `Copy of ${project.name}`.slice(0, 100), project.trackingMode)
+  try {
+    await copyScene(project.id, copy.id)
+  } catch (error) {
+    // Do not leave a half-copied project behind.
+    await deleteProject(copy.id).catch(() => undefined)
+    throw error
+  }
+  return copy
 }
 
 export async function deleteProject(id: string): Promise<void> {
@@ -82,4 +90,11 @@ export async function deleteProject(id: string): Promise<void> {
   if (!data || data.length === 0) {
     throw new Error('The project was not deleted. You may not have permission.')
   }
+  
+}
+export async function getProject(projectId: string): Promise<Project> {
+  const { data, error } = await supabase.from('projects').select(columns).eq('id', projectId).maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) throw new Error('Project not found, or you do not have access to it.')
+  return toProject(data)
 }
