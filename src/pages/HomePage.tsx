@@ -18,7 +18,7 @@ export function HomePage() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <ButtonLink to="/features" variant="light">See planned features</ButtonLink>
-          <ButtonLink to="/dashboard" variant="outlineLight">Preview the dashboard</ButtonLink>
+          <ButtonLink to="/dashboard" variant="outlineLight">Open Dashboard</ButtonLink>
         </div>
       </section>
 

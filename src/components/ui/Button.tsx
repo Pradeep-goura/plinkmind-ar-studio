@@ -9,6 +9,7 @@ const variants = {
   light: 'bg-brand-paper text-brand-ink hover:bg-brand-warm',
   outline: 'border border-brand-ink text-brand-ink hover:bg-brand-ink/10',
   outlineLight: 'border border-brand-paper text-brand-paper hover:bg-brand-paper/10',
+    danger: 'bg-red-700 text-brand-paper hover:bg-red-800',
 }
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

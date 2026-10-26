@@ -1,10 +1,14 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { PlinkmindMark } from './PlinkmindMark'
+import { useAuth } from '../../features/auth/useAuth'
+import { Button } from '../ui/Button'
 import { StatusBadge } from '../ui/StatusBadge'
+import { PlinkmindMark } from './PlinkmindMark'
 
 const plannedItems = ['Assets', 'Team', 'Settings']
 
 export function DashboardLayout() {
+  const { user, signOut } = useAuth()
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-black/10 bg-brand-paper">
@@ -13,7 +17,10 @@ export function DashboardLayout() {
             <PlinkmindMark />
             <span className="text-xl font-light">Plinkmind</span>
           </Link>
-          <StatusBadge tone="sample" label="Preview: not signed in" />
+          <div className="flex items-center gap-3">
+            <span className="hidden max-w-[220px] truncate text-sm sm:inline">{user?.email}</span>
+            <Button variant="outline" onClick={() => void signOut()}>Sign out</Button>
+          </div>
         </div>
       </header>
 

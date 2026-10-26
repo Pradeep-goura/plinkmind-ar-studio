@@ -1,14 +1,8 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { useAuth } from '../../features/auth/useAuth'
+import { Button, ButtonLink } from '../ui/Button'
 import { PlinkmindMark } from './PlinkmindMark'
-import { ButtonLink } from '../ui/Button'
-
-const links = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/features', label: 'Features', end: false },
-  { to: '/dashboard', label: 'Dashboard preview', end: false },
-  { to: '/sign-in', label: 'Sign in', end: false },
-]
 
 function navClass({ isActive }: { isActive: boolean }) {
   return isActive
@@ -18,9 +12,16 @@ function navClass({ isActive }: { isActive: boolean }) {
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
+  const { user, signOut } = useAuth()
+
+  const links = [
+    { to: '/', label: 'Home', end: true },
+    { to: '/features', label: 'Features', end: false },
+    ...(user ? [{ to: '/dashboard', label: 'Dashboard', end: false }] : []),
+  ]
 
   return (
-        <header className="mx-auto w-full max-w-6xl px-4 py-5">
+    <header className="mx-auto w-full max-w-6xl px-4 py-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3" aria-label="Plinkmind AR Studio home">
           <PlinkmindMark />
@@ -43,19 +44,30 @@ export function SiteHeader() {
           className={`${open ? 'flex' : 'hidden'} w-full flex-col gap-3 md:flex md:w-auto md:flex-row md:items-center md:gap-6`}
         >
           {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              className={navClass}
-              onClick={() => setOpen(false)}
-            >
+            <NavLink key={link.to} to={link.to} end={link.end} className={navClass} onClick={() => setOpen(false)}>
               {link.label}
             </NavLink>
           ))}
-          <ButtonLink to="/register" onClick={() => setOpen(false)}>
-            Register
-          </ButtonLink>
+          {user ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpen(false)
+                void signOut()
+              }}
+            >
+              Sign out
+            </Button>
+          ) : (
+            <>
+              <NavLink to="/sign-in" className={navClass} onClick={() => setOpen(false)}>
+                Sign in
+              </NavLink>
+              <ButtonLink to="/register" onClick={() => setOpen(false)}>
+                Register
+              </ButtonLink>
+            </>
+          )}
         </nav>
       </div>
     </header>
