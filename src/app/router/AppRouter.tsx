@@ -31,8 +31,9 @@ export function AppRouter() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
       <Route element={<RequireAuth />}>
+       <Route path="/dashboard/projects/:projectId/editor" element={<EditorPage />} />
         <Route element={<DashboardLayout />}>
-                <Route path="/dashboard/projects/:projectId/editor" element={<EditorPage />} />
+               
           <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/dashboard/assets" element={<AssetsPage />} />
         </Route>

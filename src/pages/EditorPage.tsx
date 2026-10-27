@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Notice } from '../components/ui/Notice'
-import { StatusBadge } from '../components/ui/StatusBadge'
 import { listAssets } from '../features/assets/assetsApi'
 import { AssetLibraryPanel } from '../features/editor/AssetLibraryPanel'
 import { EditorToolbar } from '../features/editor/EditorToolbar'
 import { HierarchyPanel } from '../features/editor/HierarchyPanel'
 import { PropertiesPanel } from '../features/editor/PropertiesPanel'
-import { addAudio, addModel, findObject, removeObject, setVisible } from '../features/editor/sceneOps'
+import { addAudio, addModel, findObject, removeObject, setTransform, setVisible } from '../features/editor/sceneOps'
 import { MAX_OBJECTS } from '../features/editor/sceneSchema'
 import { useSceneEditor } from '../features/editor/useSceneEditor'
 import { getProject } from '../features/projects/projectsApi'
 import { errorMessage } from '../lib/utils/errors'
 import type { Asset } from '../types/asset'
 import type { Project } from '../types/project'
+import type { TransformMode } from '../features/editor/viewport/ViewportEngine'
 
+const Viewport = lazy(() => import('../features/editor/Viewport'))
 type ExtraState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
@@ -26,6 +27,7 @@ function SceneEditor({ projectId }: { projectId: string }) {
   const { scene, change, undo, redo } = editor
   const [extra, setExtra] = useState<ExtraState>({ status: 'loading' })
   const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [mode, setMode] = useState<TransformMode>('translate')
 
   useEffect(() => {
     let ignore = false
@@ -48,6 +50,12 @@ function SceneEditor({ projectId }: { projectId: string }) {
       if (target.closest('input, textarea, select, [contenteditable="true"]')) return
       const modifier = event.ctrlKey || event.metaKey
       const key = event.key.toLowerCase()
+            if (!modifier && !event.altKey) {
+        if (key === 'w') setMode('translate')
+        else if (key === 'e') setMode('rotate')
+        else if (key === 'r') setMode('scale')
+        else if (event.key === 'Escape') setSelectedId(null)
+      }
 
       if (modifier && key === 'z') {
         event.preventDefault()
@@ -134,19 +142,17 @@ function SceneEditor({ projectId }: { projectId: string }) {
           />
         </div>
 
-        <section
-          aria-label="3D viewport (planned)"
-          className="grid min-h-[360px] place-items-center rounded-card bg-neutral-200 p-6 text-center"
-        >
-          <div>
-            <StatusBadge tone="planned" label="Planned" />
-            <p className="mt-3 font-semibold">3D viewport</p>
-            <p className="mt-1 text-sm">
-              The visual viewport with move, rotate and scale handles arrives in the next step (Part 5B).
-              For now you can add objects, edit their values, and the scene saves automatically.
-            </p>
-          </div>
-        </section>
+                <Suspense fallback={<p role="status">Loading the 3D viewport...</p>}>
+          <Viewport
+            scene={scene}
+            assets={extra.assets}
+            selectedId={selectedId}
+            mode={mode}
+            onModeChange={setMode}
+            onSelect={setSelectedId}
+            onTransformEnd={(id, transform) => change(setTransform(scene, id, transform))}
+          />
+        </Suspense>
 
         <PropertiesPanel
           scene={scene}

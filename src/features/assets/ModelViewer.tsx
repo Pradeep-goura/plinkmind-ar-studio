@@ -5,15 +5,8 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { Notice } from '../../components/ui/Notice'
+import { isWebGLAvailable } from '../../lib/utils/webgl'
 
-function isWebGLAvailable(): boolean {
-  try {
-    const canvas = document.createElement('canvas')
-    return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'))
-  } catch {
-    return false
-  }
-}
 
 export default function ModelViewer({ url }: { url: string }) {
   const containerRef = useRef<HTMLDivElement>(null)

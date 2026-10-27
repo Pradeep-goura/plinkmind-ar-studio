@@ -17,3 +17,5 @@ Do not deploy publicly until all of these are done:
 - [ ] Check total storage limit on the Supabase Usage page
 - [ ] Re-run supabase/tests/scenes_isolation.sql after every schema change
 - [ ] Validate scene data on the server when publishing (a scene may reference an asset from another workspace)
+- [ ] Test the 3D editor on real phones and tablets (touch gizmo handles, performance with large models)
+- [ ] Add a size/triangle warning for heavy models in the editor
