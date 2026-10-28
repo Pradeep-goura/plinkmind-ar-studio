@@ -19,3 +19,11 @@ Do not deploy publicly until all of these are done:
 - [ ] Validate scene data on the server when publishing (a scene may reference an asset from another workspace)
 - [ ] Test the 3D editor on real phones and tablets (touch gizmo handles, performance with large models)
 - [ ] Add a size/triangle warning for heavy models in the editor
+- [ ] Re-run supabase/tests/publishing_isolation.sql after every publishing change
+- [ ] Re-check uploaded files on the server at publish time (magic bytes) with an Edge Function
+- [ ] Re-validate numeric scene values (position/rotation/scale ranges) at publish time; the public viewer also validates on load
+- [ ] Decide signed-link lifetime for public viewing and test a page left open for hours
+- [ ] Add rate limiting or caching in front of get_public_experience
+- [ ] The public asset path contains the workspace id; decide whether that is acceptable
+- [ ] Print a QR code and scan it from a distance, on at least two phones
+- [ ] Review the qr package license (MIT)

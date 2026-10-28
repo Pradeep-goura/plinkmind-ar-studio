@@ -3,13 +3,18 @@ import type { FormEvent } from 'react'
 import { Button, ButtonLink } from '../../components/ui/Button'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import type { Project } from '../../types/project'
+import type { PublishInfo } from '../publishing/publishApi'
+import { PublishPanel } from '../publishing/PublishPanel'
 
 type ProjectCardProps = {
   project: Project
+  publishInfo: PublishInfo | undefined
   busy: boolean
   onRename: (name: string) => void
   onDuplicate: () => void
   onDelete: () => void
+  onPublish: () => void
+  onUnpublish: () => void
 }
 
 type Mode = 'view' | 'rename' | 'delete'
@@ -19,7 +24,8 @@ const trackingLabels = {
   image: 'Image target',
 }
 
-export function ProjectCard({ project, busy, onRename, onDuplicate, onDelete }: ProjectCardProps) {
+export function ProjectCard(props: ProjectCardProps) {
+  const { project, publishInfo, busy, onRename, onDuplicate, onDelete, onPublish, onUnpublish } = props
   const [mode, setMode] = useState<Mode>('view')
 
   function submitRename(event: FormEvent<HTMLFormElement>) {
@@ -68,7 +74,11 @@ export function ProjectCard({ project, busy, onRename, onDuplicate, onDelete }: 
 
       {mode === 'delete' && (
         <div className="mt-4 rounded-md border border-red-700 bg-red-50 p-3 text-sm" role="group" aria-label="Confirm delete">
-          <p>Delete "{project.name}"? This cannot be undone.</p>
+          <p>
+            Delete "{project.name}"? This cannot be undone.
+            {project.status === 'published' &&
+              ' This project is published, so its public link and QR code will stop working.'}
+          </p>
           <div className="mt-3 flex gap-2">
             <Button
               variant="danger"
@@ -86,12 +96,21 @@ export function ProjectCard({ project, busy, onRename, onDuplicate, onDelete }: 
       )}
 
       {mode === 'view' && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button variant="outline" disabled={busy} onClick={() => setMode('rename')}>Rename</Button>
-          <Button variant="outline" disabled={busy} onClick={onDuplicate}>Duplicate</Button>
-          <Button variant="outline" disabled={busy} onClick={() => setMode('delete')}>Delete</Button>
-                    <ButtonLink to={`/dashboard/projects/${project.id}/editor`} variant="outline">Open editor</ButtonLink>
-        </div>
+        <>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" disabled={busy} onClick={() => setMode('rename')}>Rename</Button>
+            <Button variant="outline" disabled={busy} onClick={onDuplicate}>Duplicate</Button>
+            <Button variant="outline" disabled={busy} onClick={() => setMode('delete')}>Delete</Button>
+            <ButtonLink to={`/dashboard/projects/${project.id}/editor`} variant="outline">Open editor</ButtonLink>
+          </div>
+          <PublishPanel
+            project={project}
+            info={publishInfo}
+            busy={busy}
+            onPublish={onPublish}
+            onUnpublish={onUnpublish}
+          />
+        </>
       )}
     </li>
   )

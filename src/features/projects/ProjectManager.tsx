@@ -7,6 +7,8 @@ import { errorMessage } from '../../lib/utils/errors'
 import { firstError, projectNameSchema } from '../../lib/validation/forms'
 import type { Project, ProjectStatus, TrackingMode } from '../../types/project'
 import { useAuth } from '../auth/useAuth'
+import { listPublishInfo, publishProject, unpublishProject } from '../publishing/publishApi'
+import type { PublishInfo } from '../publishing/publishApi'
 import { ProjectCard } from './ProjectCard'
 import {
   createProject,
@@ -20,7 +22,7 @@ import {
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; workspaceId: string; projects: Project[] }
+  | { status: 'ready'; workspaceId: string; projects: Project[]; publish: PublishInfo[] }
 
 type NoticeState = { tone: 'success' | 'error'; text: string }
 
@@ -39,9 +41,12 @@ export function ProjectManager() {
 
     async function load(id: string) {
       try {
-        const workspaceId = await getWorkspaceId(id)
-        const projects = await listProjects()
-        if (!ignore) setState({ status: 'ready', workspaceId, projects })
+        const [workspaceId, projects, publish] = await Promise.all([
+          getWorkspaceId(id),
+          listProjects(),
+          listPublishInfo(),
+        ])
+        if (!ignore) setState({ status: 'ready', workspaceId, projects, publish })
       } catch (error) {
         if (!ignore) setState({ status: 'error', message: errorMessage(error) })
       }
@@ -56,6 +61,12 @@ export function ProjectManager() {
   function changeProjects(change: (projects: Project[]) => Project[]) {
     setState((previous) =>
       previous.status === 'ready' ? { ...previous, projects: change(previous.projects) } : previous,
+    )
+  }
+
+  function changePublish(change: (publish: PublishInfo[]) => PublishInfo[]) {
+    setState((previous) =>
+      previous.status === 'ready' ? { ...previous, publish: change(previous.publish) } : previous,
     )
   }
 
@@ -124,7 +135,41 @@ export function ProjectManager() {
     void runAction(async () => {
       await deleteProject(project.id)
       changeProjects((list) => list.filter((item) => item.id !== project.id))
+      changePublish((list) => list.filter((item) => item.projectId !== project.id))
       return `Deleted "${project.name}".`
+    })
+  }
+
+  function handlePublish(project: Project) {
+    void runAction(async () => {
+      const result = await publishProject(project.id)
+      changePublish((list) => [
+        ...list.filter((item) => item.projectId !== project.id),
+        {
+          projectId: project.id,
+          slug: result.slug,
+          status: 'live',
+          liveVersion: result.version,
+          updatedAt: new Date().toISOString(),
+        },
+      ])
+      changeProjects((list) =>
+        list.map((item) => (item.id === project.id ? { ...item, status: 'published' } : item)),
+      )
+      return `Published "${project.name}" as version ${result.version}.`
+    })
+  }
+
+  function handleUnpublish(project: Project) {
+    void runAction(async () => {
+      await unpublishProject(project.id)
+      changePublish((list) =>
+        list.map((item) => (item.projectId === project.id ? { ...item, status: 'unpublished' } : item)),
+      )
+      changeProjects((list) =>
+        list.map((item) => (item.id === project.id ? { ...item, status: 'draft' } : item)),
+      )
+      return `Unpublished "${project.name}". Its link no longer works until you publish again.`
     })
   }
 
@@ -217,10 +262,13 @@ export function ProjectManager() {
             <ProjectCard
               key={project.id}
               project={project}
+              publishInfo={state.publish.find((item) => item.projectId === project.id)}
               busy={busy}
               onRename={(name) => handleRename(project, name)}
               onDuplicate={() => handleDuplicate(project)}
               onDelete={() => handleDelete(project)}
+              onPublish={() => handlePublish(project)}
+              onUnpublish={() => handleUnpublish(project)}
             />
           ))}
         </ul>

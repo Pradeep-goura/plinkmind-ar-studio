@@ -66,14 +66,22 @@ export async function deleteStorageObject(path: string): Promise<void> {
 
 // Removing the same file twice is safe, so a failed delete can simply be retried.
 export async function deleteAsset(asset: Asset): Promise<void> {
-  await deleteStorageObject(asset.storagePath)
+  // The database row goes first. Its rules refuse the delete while a live
+  // published experience uses this asset.
   const { data, error } = await supabase.from('assets').delete().eq('id', asset.id).select('id')
   if (error) throw new Error(error.message)
   if (!data || data.length === 0) {
-    throw new Error('The asset was not deleted. You may not have permission.')
+    throw new Error(
+      'The asset was not deleted. It may be used by a published experience (unpublish it first), or you may not have permission.',
+    )
+  }
+  try {
+    await deleteStorageObject(asset.storagePath)
+  } catch (storageError) {
+    // The asset is already gone from the app. A leftover file is cleaned up later.
+    console.error('Asset file could not be removed from storage', storageError)
   }
 }
-
 export async function createAssetUrl(path: string): Promise<string> {
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600)
   if (error || !data) throw new Error(error?.message ?? 'Could not create a preview link.')
