@@ -31,3 +31,6 @@ Do not deploy publicly until all of these are done:
 - [ ] Apply position, rotation and scale in AR (needs our own WebXR player)
 - [ ] Check the Apache-2.0 license of @google/model-viewer
 - [ ] Confirm a 6-hour signed link still works when launching Scene Viewer or Quick Look
+- [ ] Add a Content-Security-Policy that works with Three.js, WebAssembly and model-viewer
+- [ ] Decide how to avoid the Supabase free-plan pause (paid plan, or an activity check)
+- [ ] Custom domain for the app (for example a Plinkmind subdomain)

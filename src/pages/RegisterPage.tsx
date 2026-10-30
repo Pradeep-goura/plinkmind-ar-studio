@@ -8,6 +8,7 @@ import { friendlyAuthError } from '../features/auth/authErrors'
 import { useAuth } from '../features/auth/useAuth'
 import { isSupabaseConfigured, supabase } from '../lib/supabase/client'
 import { firstError, registerSchema } from '../lib/validation/forms'
+import { SIGNUPS_OPEN } from '../lib/config'
 
 export function RegisterPage() {
   const { user } = useAuth()
@@ -16,6 +17,30 @@ export function RegisterPage() {
   const [busy, setBusy] = useState(false)
 
   if (user) return <Navigate to="/dashboard" replace />
+    if (!SIGNUPS_OPEN) {
+    return (
+      <div className="mx-auto max-w-md rounded-card bg-brand-paper p-8">
+        <h1 className="text-2xl font-semibold">Registration is invite-only</h1>
+        <p className="mt-3 text-sm">
+          Plinkmind AR Studio is in a closed beta. New accounts are created by the Plinkmind team.
+        </p>
+        <p className="mt-4 text-sm">
+          <a
+            href="https://www.plinkmind.world/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-brand-link underline"
+          >
+            Contact Plinkmind
+          </a>{' '}
+          ·{' '}
+          <Link to="/sign-in" className="font-medium text-brand-link underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    )
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

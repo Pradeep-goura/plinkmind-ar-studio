@@ -8,6 +8,7 @@ import { friendlyAuthError } from '../features/auth/authErrors'
 import { useAuth } from '../features/auth/useAuth'
 import { isSupabaseConfigured, supabase } from '../lib/supabase/client'
 import { firstError, signInSchema } from '../lib/validation/forms'
+import { SIGNUPS_OPEN } from '../lib/config'
 
 export function SignInPage() {
   const { user } = useAuth()
@@ -59,10 +60,13 @@ export function SignInPage() {
       <p className="mt-6 text-sm">
         <Link to="/forgot-password" className="font-medium text-brand-link underline">Forgot password?</Link>
       </p>
-      <p className="mt-2 text-sm">
-        No account yet?{' '}
-        <Link to="/register" className="font-medium text-brand-link underline">Register</Link>
-      </p>
+            {SIGNUPS_OPEN && (
+        <p className="mt-2 text-sm">
+          No account yet?{' '}
+          <Link to="/register" className="font-medium text-brand-link underline">Register</Link>
+        </p>
+      )}
+      
     </div>
   )
 }

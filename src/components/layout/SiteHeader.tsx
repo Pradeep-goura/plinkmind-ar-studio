@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../../features/auth/useAuth'
 import { Button, ButtonLink } from '../ui/Button'
 import { PlinkmindMark } from './PlinkmindMark'
+import { SIGNUPS_OPEN } from '../../lib/config'
 
 function navClass({ isActive }: { isActive: boolean }) {
   return isActive
@@ -63,9 +64,11 @@ export function SiteHeader() {
               <NavLink to="/sign-in" className={navClass} onClick={() => setOpen(false)}>
                 Sign in
               </NavLink>
-              <ButtonLink to="/register" onClick={() => setOpen(false)}>
-                Register
-              </ButtonLink>
+                            {SIGNUPS_OPEN && (
+                <ButtonLink to="/register" onClick={() => setOpen(false)}>
+                  Register
+                </ButtonLink>
+              )}
             </>
           )}
         </nav>

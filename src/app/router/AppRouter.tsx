@@ -14,7 +14,6 @@ import { PublicExperiencePage } from '../../pages/PublicExperiencePage'
 import { RegisterPage } from '../../pages/RegisterPage'
 import { ResetPasswordPage } from '../../pages/ResetPasswordPage'
 import { SignInPage } from '../../pages/SignInPage'
-import { StatusPage } from '../../pages/StatusPage'
 import { TermsPage } from '../../pages/TermsPage'
 
 export function AppRouter() {
@@ -30,7 +29,6 @@ export function AppRouter() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="/status" element={<StatusPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
