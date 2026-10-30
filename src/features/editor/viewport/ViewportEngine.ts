@@ -15,6 +15,7 @@ type EngineCallbacks = {
   onSelect: (id: string | null) => void
   onTransformEnd: (id: string, transform: ModelTransform) => void
   onAssetFailed: (assetId: string) => void
+    onSettled?: () => void
 }
 
 type Entry = {
@@ -195,6 +196,14 @@ export class ViewportEngine {
     entry.state = 'error'
     entry.placeholder.material = this.errorMaterial
   }
+    // Tells the page when every model has either loaded or failed.
+  private notifyIfSettled() {
+    if (this.disposed) return
+    for (const entry of this.entries.values()) {
+      if (entry.state === 'pending' || entry.state === 'loading') return
+    }
+    this.callbacks.onSettled?.()
+  }
 
   private startLoad(entry: Entry, url: string) {
     entry.state = 'loading'
@@ -204,12 +213,14 @@ export class ViewportEngine {
         entry.group.remove(entry.placeholder)
         entry.group.add(SkeletonUtils.clone(template))
         entry.state = 'ready'
+        this.notifyIfSettled()
       })
       .catch((error: unknown) => {
         console.error('Model load failed', error)
         if (this.disposed) return
         this.markError(entry)
         this.callbacks.onAssetFailed(entry.assetId)
+        this.notifyIfSettled()
       })
   }
 
@@ -240,6 +251,7 @@ export class ViewportEngine {
       if (this.transform.object === entry.group) this.transform.detach()
       this.scene.remove(entry.group)
       this.entries.delete(id)
+      this.notifyIfSettled()
     }
   }
 

@@ -82,8 +82,8 @@ export async function deleteAsset(asset: Asset): Promise<void> {
     console.error('Asset file could not be removed from storage', storageError)
   }
 }
-export async function createAssetUrl(path: string): Promise<string> {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600)
+export async function createAssetUrl(path: string, seconds = 3600): Promise<string> {
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, seconds)
   if (error || !data) throw new Error(error?.message ?? 'Could not create a preview link.')
   return data.signedUrl
 }

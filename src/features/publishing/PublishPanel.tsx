@@ -84,7 +84,9 @@ export function PublishPanel({ project, info, busy, onPublish, onUnpublish }: Pu
           This link uses localhost, so it only works on this computer. Phones need the deployed address.
         </p>
       )}
-      <p className="text-xs text-neutral-700">The public viewer page for this link arrives in the next step.</p>
+            <a href={url} target="_blank" rel="noreferrer" className="block text-sm font-medium text-brand-link underline">
+        Open public page
+      </a>
 
       {showQr && <QrCode text={url} filename={`plinkmind-qr-${info.slug}.png`} />}
 

@@ -2,22 +2,25 @@ import { Route, Routes } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { PublicLayout } from '../../components/layout/PublicLayout'
 import { RequireAuth } from '../../features/auth/RequireAuth'
+import { AssetsPage } from '../../pages/AssetsPage'
 import { DashboardPage } from '../../pages/DashboardPage'
+import { EditorPage } from '../../pages/EditorPage'
 import { FeaturesPage } from '../../pages/FeaturesPage'
 import { ForgotPasswordPage } from '../../pages/ForgotPasswordPage'
 import { HomePage } from '../../pages/HomePage'
 import { NotFoundPage } from '../../pages/NotFoundPage'
 import { PrivacyPage } from '../../pages/PrivacyPage'
+import { PublicExperiencePage } from '../../pages/PublicExperiencePage'
 import { RegisterPage } from '../../pages/RegisterPage'
 import { ResetPasswordPage } from '../../pages/ResetPasswordPage'
 import { SignInPage } from '../../pages/SignInPage'
 import { StatusPage } from '../../pages/StatusPage'
 import { TermsPage } from '../../pages/TermsPage'
-import { AssetsPage } from '../../pages/AssetsPage'
-import { EditorPage } from '../../pages/EditorPage'
+
 export function AppRouter() {
   return (
     <Routes>
+      {/* Normal website pages: they share the site header and footer. */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/features" element={<FeaturesPage />} />
@@ -30,12 +33,16 @@ export function AppRouter() {
         <Route path="/status" element={<StatusPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
+
+      {/* The public AR page: NO site header, because it draws its own. */}
+      <Route path="/experience/:slug" element={<PublicExperiencePage />} />
+
+      {/* Pages that need a login. */}
       <Route element={<RequireAuth />}>
-       <Route path="/dashboard/projects/:projectId/editor" element={<EditorPage />} />
+        <Route path="/dashboard/projects/:projectId/editor" element={<EditorPage />} />
         <Route element={<DashboardLayout />}>
-               
           <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/dashboard/assets" element={<AssetsPage />} />
+          <Route path="/dashboard/assets" element={<AssetsPage />} />
         </Route>
       </Route>
     </Routes>

@@ -27,3 +27,7 @@ Do not deploy publicly until all of these are done:
 - [ ] The public asset path contains the workspace id; decide whether that is acceptable
 - [ ] Print a QR code and scan it from a distance, on at least two phones
 - [ ] Review the qr package license (MIT)
+- [ ] Test the public page on at least one real Android phone and one real iPhone (record in docs/device-matrix.md)
+- [ ] Apply position, rotation and scale in AR (needs our own WebXR player)
+- [ ] Check the Apache-2.0 license of @google/model-viewer
+- [ ] Confirm a 6-hour signed link still works when launching Scene Viewer or Quick Look
