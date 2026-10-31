@@ -7,3 +7,4 @@ Fill one row after every real test. Do not call a device "supported" until its r
 |------|---------------|---------|-------------------|---------|-------|---------------------|-----------|---------------|-------|
 |      |               |         |                   |         |       |                     |           |               |       |
 | 2026-10-28 | realme 6 Pro (RMX2061), Android 11, realme UI 2.0 | Opened via Google Lens (Chrome) | Yes | Yes | Yes | Yes | Yes | Yes | Via trycloudflare tunnel, model B11. AR mode (WebXR or Scene Viewer) not confirmed. Another phone could not open the link reliably. |
+| WebXR lab | realme 6 Pro, Android 11 | Chrome | Lab page loads | 3D n/a | Sound ? | n/a | AR starts ? | Placed ? | Experimental /lab/ar page: surface found? size and rotate sliders? place again? multi-object scene? |

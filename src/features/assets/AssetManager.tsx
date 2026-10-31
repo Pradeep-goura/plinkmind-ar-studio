@@ -11,6 +11,7 @@ import { AssetRow } from './AssetRow'
 import { deleteAsset, listAssets } from './assetsApi'
 import { LARGE_MODEL_WARNING_BYTES, MAX_FILE_BYTES, formatBytes } from './fileRules'
 import { uploadAsset } from './uploadAsset'
+import { Skeleton } from '../../components/ui/Skeleton'
 
 type LoadState =
   | { status: 'loading' }
@@ -111,7 +112,16 @@ export function AssetManager() {
   }
 
   if (state.status === 'loading') {
-    return <p role="status" className="rounded-md bg-brand-paper p-6">Loading your assets...</p>
+        return (
+      <div role="status" className="space-y-4">
+        <span className="sr-only">Loading your assets</span>
+        <Skeleton className="h-32" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+        </div>
+      </div>
+    )
   }
   if (state.status === 'error') {
     return (

@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { PublicLayout } from '../../components/layout/PublicLayout'
 import { RequireAuth } from '../../features/auth/RequireAuth'
+import { ArLabPage } from '../../pages/ArLabPage'
 import { AssetsPage } from '../../pages/AssetsPage'
 import { DashboardPage } from '../../pages/DashboardPage'
 import { EditorPage } from '../../pages/EditorPage'
@@ -32,8 +33,9 @@ export function AppRouter() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      {/* The public AR page: NO site header, because it draws its own. */}
+      {/* The public AR page and the experimental AR player: NO site header. */}
       <Route path="/experience/:slug" element={<PublicExperiencePage />} />
+      <Route path="/lab/ar/:slug" element={<ArLabPage />} />
 
       {/* Pages that need a login. */}
       <Route element={<RequireAuth />}>

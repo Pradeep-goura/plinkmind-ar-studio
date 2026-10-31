@@ -34,3 +34,7 @@ Do not deploy publicly until all of these are done:
 - [ ] Add a Content-Security-Policy that works with Three.js, WebAssembly and model-viewer
 - [ ] Decide how to avoid the Supabase free-plan pause (paid plan, or an activity check)
 - [ ] Custom domain for the app (for example a Plinkmind subdomain)
+- [ ] Test the WebXR lab on a real iPhone (sources disagree on iOS Safari WebXR AR support)
+- [ ] Merge the model loaders (editor viewport and lab) and the public page loading logic into one shared version
+- [ ] Decide whether the /lab/ar page becomes the main player or is removed before launch
+- [ ] Re-check ARCore/Play Services behaviour on more than one Android phone

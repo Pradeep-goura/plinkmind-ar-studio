@@ -18,6 +18,7 @@ import {
   listProjects,
   renameProject,
 } from './projectsApi'
+import { Skeleton } from '../../components/ui/Skeleton'
 
 type LoadState =
   | { status: 'loading' }
@@ -173,11 +174,16 @@ export function ProjectManager() {
     })
   }
 
-  if (state.status === 'loading') {
+    if (state.status === 'loading') {
     return (
-      <p role="status" className="rounded-md bg-brand-paper p-6">
-        Loading your projects...
-      </p>
+      <div role="status" className="space-y-4">
+        <span className="sr-only">Loading your projects</span>
+        <Skeleton className="h-28" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Skeleton className="h-44" />
+          <Skeleton className="h-44" />
+        </div>
+      </div>
     )
   }
 

@@ -1,6 +1,7 @@
 import { ButtonLink } from '../components/ui/Button'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { howItWorks, useCases } from '../features/marketing/content'
+import { DemoViewer } from '../features/publishing/DemoViewer'
 
 export function HomePage() {
   return (
@@ -22,6 +23,7 @@ export function HomePage() {
         </div>
       </section>
 
+            <DemoViewer />
       <section aria-labelledby="how-heading">
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <h2 id="how-heading" className="text-2xl font-semibold">How it will work</h2>

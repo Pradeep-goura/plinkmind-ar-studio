@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Button } from '../../components/ui/Button'
 import { createQrMatrix, drawQr } from './qr'
 
-type QrCodeProps = { text: string; filename: string }
+type QrCodeProps = { text: string; filename: string; showDownload?: boolean }
 
-export function QrCode({ text, filename }: QrCodeProps) {
+export function QrCode({ text, filename, showDownload = true }: QrCodeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const matrix = useMemo(() => createQrMatrix(text), [text])
 
@@ -31,9 +31,11 @@ export function QrCode({ text, filename }: QrCodeProps) {
         aria-label={`QR code for ${text}`}
         className="h-auto w-full max-w-[220px] rounded-md border border-neutral-300"
       />
-      <Button variant="outline" className="mt-2" onClick={download}>
-        Download QR (PNG)
-      </Button>
+      {showDownload && (
+        <Button variant="outline" className="mt-2" onClick={download}>
+          Download QR (PNG)
+        </Button>
+      )}
     </div>
   )
 }

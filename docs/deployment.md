@@ -1,6 +1,6 @@
 # Deployment notes
 
-Host: Cloudflare Pages (free plan). Repo: GitHub, branch `main`. Every push to `main` deploys.
+Host: Cloudflare Workers (static assets), deployed from GitHub `main` with Workers Builds.
 
 ## Build settings
 - Build command: `npm run build`
