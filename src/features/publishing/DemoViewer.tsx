@@ -59,8 +59,8 @@ export function DemoViewer() {
         Look around the sample in 3D, then scan the code with your phone to open it in AR.
       </p>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_240px]">
-        <div>
+            <div className="grid gap-6 md:grid-cols-[1fr_240px]">
+        <div className="min-w-0">
           {state.status === 'idle' && (
             <div className="grid min-h-[260px] place-items-center rounded-md bg-neutral-200 p-6 text-center">
               <div>

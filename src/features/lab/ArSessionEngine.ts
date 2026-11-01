@@ -11,6 +11,10 @@ export type ArLoadResult = { loaded: number; failed: number; autoFitted: boolean
 
 type ArCallbacks = { onPhase: (phase: ArPhase) => void }
 
+// Anchors are optional and not in every phone, so they are described here and checked at run time.
+type AnchorLike = { anchorSpace: XRSpace; delete: () => void }
+type AnchorHit = { createAnchor?: () => Promise<AnchorLike> }
+
 function disposeObject(root: THREE.Object3D) {
   root.traverse((node) => {
     if (node instanceof THREE.Mesh) {
@@ -41,6 +45,8 @@ export class ArSessionEngine {
   private readonly modelLoader = createModelLoader()
   private session: XRSession | null = null
   private hitTestSource: XRHitTestSource | null = null
+  private lastHit: XRHitTestResult | null = null
+  private anchor: AnchorLike | null = null
   private phase: ArPhase = 'idle'
   private placed = false
   private baseScale = 1
@@ -51,9 +57,11 @@ export class ArSessionEngine {
   constructor(callbacks: ArCallbacks) {
     this.callbacks = callbacks
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    // No antialiasing and a slightly smaller picture: much lighter on a mid-range phone.
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' })
+    this.renderer.setPixelRatio(1)
     this.renderer.xr.enabled = true
+    this.renderer.xr.setFramebufferScaleFactor(0.8)
 
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 1.4))
     const sun = new THREE.DirectionalLight(0xffffff, 2)
@@ -140,7 +148,7 @@ export class ArSessionEngine {
 
     const session = await xr.requestSession('immersive-ar', {
       requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay'],
+      optionalFeatures: ['dom-overlay', 'anchors'],
       domOverlay: { root: overlayRoot },
     })
 
@@ -160,7 +168,10 @@ export class ArSessionEngine {
   }
 
   private readonly onFrame = (_time: number, frame?: XRFrame) => {
-    if (frame && this.hitTestSource && !this.placed) this.updateReticle(frame, this.hitTestSource)
+    if (frame) {
+      if (!this.placed && this.hitTestSource) this.updateReticle(frame, this.hitTestSource)
+      else if (this.placed && this.anchor) this.followAnchor(frame, this.anchor)
+    }
     this.renderer.render(this.scene, this.camera)
   }
 
@@ -170,13 +181,46 @@ export class ArSessionEngine {
     const pose = referenceSpace ? results[0]?.getPose(referenceSpace) : undefined
 
     if (pose) {
+      this.lastHit = results[0] ?? null
       this.reticle.visible = true
       this.reticle.matrix.fromArray(pose.transform.matrix)
       this.setPhase('aiming')
     } else {
+      this.lastHit = null
       this.reticle.visible = false
       this.setPhase('searching')
     }
+  }
+
+  // The anchor keeps the scene attached to the real surface, which reduces drifting.
+  private followAnchor(frame: XRFrame, anchor: AnchorLike) {
+    const referenceSpace = this.renderer.xr.getReferenceSpace()
+    const pose = referenceSpace ? frame.getPose(anchor.anchorSpace, referenceSpace) : undefined
+    if (pose) {
+      const { x, y, z } = pose.transform.position
+      this.content.position.set(x, y, z)
+    }
+  }
+
+  private pinToSurface() {
+    const hit = this.lastHit as unknown as AnchorHit | null
+    if (!hit?.createAnchor) return
+    hit
+      .createAnchor()
+      .then((anchor) => {
+        if (this.disposed || !this.placed) {
+          anchor.delete()
+          return
+        }
+        this.releaseAnchor()
+        this.anchor = anchor
+      })
+      .catch(() => undefined) // Anchors are optional. Placement still works without them.
+  }
+
+  private releaseAnchor() {
+    this.anchor?.delete()
+    this.anchor = null
   }
 
   private readonly handleSelect = () => {
@@ -187,12 +231,15 @@ export class ArSessionEngine {
     this.placed = true
     this.reticle.visible = false
     this.setPhase('placed')
+    this.pinToSurface()
   }
 
   private readonly handleSessionEnd = () => {
     this.renderer.setAnimationLoop(null)
     this.hitTestSource?.cancel()
     this.hitTestSource = null
+    this.releaseAnchor()
+    this.lastHit = null
     this.session = null
     this.placed = false
     this.reticle.visible = false
@@ -201,6 +248,7 @@ export class ArSessionEngine {
   }
 
   resetPlacement() {
+    this.releaseAnchor()
     this.placed = false
     this.content.visible = false
     this.setPhase('searching')
@@ -223,6 +271,7 @@ export class ArSessionEngine {
   dispose() {
     this.disposed = true
     this.end()
+    this.releaseAnchor()
     this.renderer.setAnimationLoop(null)
     disposeObject(this.models)
     this.reticleGeometry.dispose()

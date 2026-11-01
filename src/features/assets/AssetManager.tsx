@@ -151,7 +151,8 @@ export function AssetManager() {
             className="block w-full text-sm"
           />
           <p className="mt-1 text-sm text-neutral-700">
-            3D model (GLB), audio (MP3, OGG) or image (PNG, JPEG, WebP). Maximum {formatBytes(MAX_FILE_BYTES)} each.
+                        3D model (GLB), audio (MP3, OGG) or image (PNG, JPEG, WebP). Maximum {formatBytes(MAX_FILE_BYTES)} each.
+            Use MP3 for sound: OGG often does not play on iPhone.
           </p>
         </div>
         {warning && <Notice tone="warning">{warning}</Notice>}

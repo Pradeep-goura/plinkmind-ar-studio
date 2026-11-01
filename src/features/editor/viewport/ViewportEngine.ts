@@ -15,8 +15,10 @@ type EngineCallbacks = {
   onSelect: (id: string | null) => void
   onTransformEnd: (id: string, transform: ModelTransform) => void
   onAssetFailed: (assetId: string) => void
-    onSettled?: () => void
+  onSettled?: () => void
 }
+
+type EngineOptions = { maxPixelRatio?: number }
 
 type Entry = {
   id: string
@@ -42,6 +44,7 @@ function disposeObject(root: THREE.Object3D) {
 }
 
 // All Three.js work lives here, outside React, so nothing re-renders on every frame.
+// It also draws only when something changed, which keeps phones cool.
 export class ViewportEngine {
   private readonly container: HTMLElement
   private readonly callbacks: EngineCallbacks
@@ -60,16 +63,22 @@ export class ViewportEngine {
   private readonly pendingMaterial = new THREE.MeshBasicMaterial({ color: 0x4f7cff, transparent: true, opacity: 0.3 })
   private readonly errorMaterial = new THREE.MeshBasicMaterial({ color: 0xd32f2f, transparent: true, opacity: 0.4 })
   private pointerStart: { x: number; y: number } | null = null
+  private needsRender = true
   private disposed = false
 
-  constructor(container: HTMLElement, callbacks: EngineCallbacks) {
+  constructor(container: HTMLElement, callbacks: EngineCallbacks, options: EngineOptions = {}) {
     this.container = container
     this.callbacks = callbacks
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.maxPixelRatio ?? 2))
     this.renderer.setClearColor(0xe5e5e5)
-    container.appendChild(this.renderer.domElement)
+    const canvas = this.renderer.domElement
+    // The canvas always fills the container. Its own pixel size can never push the page wider.
+    canvas.style.display = 'block'
+    canvas.style.width = '100%'
+    canvas.style.height = '100%'
+    container.appendChild(canvas)
 
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 1.2))
     const sun = new THREE.DirectionalLight(0xffffff, 2)
@@ -77,12 +86,14 @@ export class ViewportEngine {
     this.scene.add(sun)
     this.scene.add(new THREE.GridHelper(20, 40, 0x888888, 0xcccccc))
 
-    this.orbit = new OrbitControls(this.camera, this.renderer.domElement)
+    this.orbit = new OrbitControls(this.camera, canvas)
     this.orbit.enableDamping = true
+    this.orbit.addEventListener('change', () => this.requestRender())
     this.resetView()
 
-    this.transform = new TransformControls(this.camera, this.renderer.domElement)
+    this.transform = new TransformControls(this.camera, canvas)
     this.scene.add(this.transform.getHelper())
+    this.transform.addEventListener('change', () => this.requestRender())
     this.transform.addEventListener('dragging-changed', (event) => {
       const dragging = Boolean(event.value)
       this.orbit.enabled = !dragging
@@ -93,7 +104,6 @@ export class ViewportEngine {
     this.loader.setDRACOLoader(this.draco)
     this.loader.setMeshoptDecoder(MeshoptDecoder)
 
-    const canvas = this.renderer.domElement
     canvas.addEventListener('pointerdown', this.handlePointerDown)
     canvas.addEventListener('pointerup', this.handlePointerUp)
 
@@ -103,16 +113,23 @@ export class ViewportEngine {
 
     this.renderer.setAnimationLoop(() => {
       this.orbit.update()
+      if (!this.needsRender) return
+      this.needsRender = false
       this.renderer.render(this.scene, this.camera)
     })
+  }
+
+  requestRender() {
+    this.needsRender = true
   }
 
   private resize() {
     const width = this.container.clientWidth
     const height = Math.max(this.container.clientHeight, 1)
-    this.renderer.setSize(width, height)
-    this.camera.aspect = width / height
+    this.renderer.setSize(width, height, false)
+    this.camera.aspect = width / Math.max(width > 0 ? height : 1, 1)
     this.camera.updateProjectionMatrix()
+    this.requestRender()
   }
 
   private readonly handlePointerDown = (event: PointerEvent) => {
@@ -195,8 +212,10 @@ export class ViewportEngine {
   private markError(entry: Entry) {
     entry.state = 'error'
     entry.placeholder.material = this.errorMaterial
+    this.requestRender()
   }
-    // Tells the page when every model has either loaded or failed.
+
+  // Tells the page when every model has either loaded or failed.
   private notifyIfSettled() {
     if (this.disposed) return
     for (const entry of this.entries.values()) {
@@ -213,6 +232,7 @@ export class ViewportEngine {
         entry.group.remove(entry.placeholder)
         entry.group.add(SkeletonUtils.clone(template))
         entry.state = 'ready'
+        this.requestRender()
         this.notifyIfSettled()
       })
       .catch((error: unknown) => {
@@ -251,18 +271,22 @@ export class ViewportEngine {
       if (this.transform.object === entry.group) this.transform.detach()
       this.scene.remove(entry.group)
       this.entries.delete(id)
-      this.notifyIfSettled()
     }
+
+    this.requestRender()
+    this.notifyIfSettled()
   }
 
   setSelected(id: string | null) {
     const entry = id ? this.entries.get(id) : undefined
     if (entry && entry.group.visible) this.transform.attach(entry.group)
     else this.transform.detach()
+    this.requestRender()
   }
 
   setMode(mode: TransformMode) {
     this.transform.setMode(mode)
+    this.requestRender()
   }
 
   setSnap(enabled: boolean) {
@@ -278,6 +302,7 @@ export class ViewportEngine {
     this.camera.position.set(4, 3, 5)
     this.orbit.target.set(0, 0.5, 0)
     this.orbit.update()
+    this.requestRender()
   }
 
   // Moves the camera to fit the selected object, or everything when nothing is selected.
@@ -308,6 +333,7 @@ export class ViewportEngine {
     this.camera.far = Math.max(distance * 100, 100)
     this.camera.updateProjectionMatrix()
     this.orbit.update()
+    this.requestRender()
   }
 
   dispose() {

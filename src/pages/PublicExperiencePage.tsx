@@ -1,26 +1,24 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { PlinkmindMark } from '../components/layout/PlinkmindMark'
+import { Button } from '../components/ui/Button'
 import { Notice } from '../components/ui/Notice'
+import { formatBytes } from '../features/assets/fileRules'
 import { AudioControls } from '../features/publishing/AudioControls'
 import { DeviceCheck } from '../features/publishing/DeviceCheck'
+import { detectInAppBrowser } from '../features/publishing/environment'
 import { isValidSlug } from '../features/publishing/experienceUrl'
-import { createPublicAssetUrls, getPublicExperience } from '../features/publishing/publicApi'
-import type { PublicExperience } from '../features/publishing/publicApi'
-import { buildViewData } from '../features/publishing/viewData'
-import type { ViewData } from '../features/publishing/viewData'
-import { errorMessage } from '../lib/utils/errors'
+import { usePublicExperience } from '../features/publishing/usePublicExperience'
+import type { PublicExperienceState } from '../features/publishing/usePublicExperience'
 
 // Heavy 3D and AR code is only downloaded when this page needs it.
 const PublicStage = lazy(() => import('../features/publishing/PublicStage'))
 const ArLauncher = lazy(() => import('../features/publishing/ArLauncher'))
 
-type PageState =
-  | { status: 'loading' }
-  | { status: 'not-found' }
-  | { status: 'error'; message: string }
-  | { status: 'ready'; experience: PublicExperience; urls: Map<string, string>; view: ViewData }
+const HEAVY_MODEL_BYTES = 15 * 1024 * 1024
+
+type ReadyState = Extract<PublicExperienceState, { status: 'ready' }>
 
 function Frame({ children }: { children: ReactNode }) {
   return (
@@ -43,43 +41,112 @@ function NotAvailable() {
   )
 }
 
+function ExperienceView({ ready }: { ready: ReadyState }) {
+  const { experience, urls, view } = ready
+  const [mode, setMode] = useState<'stage' | 'ar'>('stage')
+
+  const totalModelBytes = experience.assets
+    .filter((asset) => asset.kind === 'model')
+    .reduce((sum, asset) => sum + asset.sizeBytes, 0)
+  const heavy = totalModelBytes > HEAVY_MODEL_BYTES
+  // Large models are not downloaded until the visitor asks, so a weak phone cannot crash on arrival.
+  const [stageStarted, setStageStarted] = useState(!heavy)
+  const inApp = detectInAppBrowser(navigator.userAgent)
+
+  return (
+    <Frame>
+      <div>
+        <h1 className="break-words text-2xl font-semibold">{experience.title}</h1>
+        <p className="text-sm text-neutral-700">
+          Surface placement experience · version {experience.version}
+        </p>
+      </div>
+
+      {inApp && (
+        <Notice tone="warning" title={`You opened this inside ${inApp}`}>
+          AR and sound often do not work in a browser inside another app. Open this page in Safari
+          (iPhone) or Chrome (Android) from the app's menu.
+        </Notice>
+      )}
+
+      {heavy && (
+        <Notice tone="warning" title="This experience has large models">
+          The models are {formatBytes(totalModelBytes)} in total. They can be slow, or fail, on older
+          phones.
+        </Notice>
+      )}
+
+      {view.missing.size > 0 && (
+        <Notice tone="warning">Some parts of this experience could not be loaded.</Notice>
+      )}
+
+      {mode === 'stage' ? (
+        stageStarted ? (
+          <Suspense fallback={<p role="status">Loading the 3D view...</p>}>
+            <PublicStage models={view.models} urls={urls} missing={view.missing} />
+          </Suspense>
+        ) : (
+          <div className="grid min-h-[200px] place-items-center rounded-card bg-brand-paper p-6 text-center">
+            <div>
+              <p className="mb-3 text-sm">The 3D view is a large download, so it loads only when you ask.</p>
+              <Button onClick={() => setStageStarted(true)}>Load the 3D view</Button>
+            </div>
+          </div>
+        )
+      ) : (
+        <section aria-labelledby="ar-heading" className="rounded-card bg-brand-paper p-4">
+          <h2 id="ar-heading" className="text-lg font-semibold">AR view</h2>
+          {view.arModel && (
+            <>
+              <p className="mb-3 mt-1 text-sm">
+                Place "{view.arModel.name}" on a floor or table with your phone camera.
+              </p>
+              <Suspense fallback={<p role="status">Preparing AR...</p>}>
+                <ArLauncher src={view.arModel.url} alt={view.arModel.name} />
+              </Suspense>
+            </>
+          )}
+          <div className="mt-3">
+            <Button variant="outline" onClick={() => setMode('stage')}>Back to the 3D view</Button>
+          </div>
+        </section>
+      )}
+
+      <AudioControls items={view.audioItems} />
+
+      {mode === 'stage' && (
+        <section aria-labelledby="ar-card-heading" className="rounded-card bg-brand-paper p-4">
+          <h2 id="ar-card-heading" className="text-lg font-semibold">View in AR</h2>
+          {view.arModel ? (
+            <>
+              <p className="mb-3 mt-1 text-sm">
+                Opening the AR view replaces the 3D view above, so your phone only keeps one copy of the
+                model in memory.
+              </p>
+              <Button onClick={() => setMode('ar')}>Open the AR view</Button>
+            </>
+          ) : (
+            <p className="mt-1 text-sm">This experience has no visible 3D model to show in AR.</p>
+          )}
+          <p className="mt-3 text-xs text-neutral-700">
+            AR currently places the first visible model only. Position, rotation and scale from the
+            editor are not applied in this mode yet, and sound may not play inside the phone's AR
+            viewer. Full multi-object AR is planned.
+          </p>
+        </section>
+      )}
+
+      <DeviceCheck />
+    </Frame>
+  )
+}
+
 export function PublicExperiencePage() {
   const { slug } = useParams()
-  const [state, setState] = useState<PageState>({ status: 'loading' })
-  const slugIsValid = slug !== undefined && isValidSlug(slug)
+  const valid = slug !== undefined && isValidSlug(slug)
+  const state = usePublicExperience(valid ? slug : undefined)
 
-  useEffect(() => {
-    if (!slug || !isValidSlug(slug)) return
-    let ignore = false
-
-    async function load(validSlug: string) {
-      try {
-        const result = await getPublicExperience(validSlug)
-        if (ignore) return
-        if (result.status === 'not-found') {
-          setState({ status: 'not-found' })
-          return
-        }
-        if (result.status === 'invalid') {
-          setState({ status: 'error', message: result.message })
-          return
-        }
-        const { urls, failed } = await createPublicAssetUrls(result.experience.assets)
-        if (ignore) return
-        const view = buildViewData(result.experience.scene, urls, failed)
-        setState({ status: 'ready', experience: result.experience, urls, view })
-      } catch (error) {
-        if (!ignore) setState({ status: 'error', message: errorMessage(error) })
-      }
-    }
-
-    void load(slug)
-    return () => {
-      ignore = true
-    }
-  }, [slug])
-
-  if (!slugIsValid || state.status === 'not-found') return <NotAvailable />
+  if (!valid || state.status === 'not-found') return <NotAvailable />
 
   if (state.status === 'loading') {
     return (
@@ -97,49 +164,5 @@ export function PublicExperiencePage() {
     )
   }
 
-  const { experience, urls, view } = state
-
-  return (
-    <Frame>
-      <div>
-        <h1 className="break-words text-2xl font-semibold">{experience.title}</h1>
-        <p className="text-sm text-neutral-700">
-          Surface placement experience · version {experience.version}
-        </p>
-      </div>
-
-      {view.missing.size > 0 && (
-        <Notice tone="warning">Some parts of this experience could not be loaded.</Notice>
-      )}
-
-      <Suspense fallback={<p role="status">Loading the 3D view...</p>}>
-        <PublicStage models={view.models} urls={urls} missing={view.missing} />
-      </Suspense>
-
-      <AudioControls items={view.audioItems} />
-
-      <section aria-labelledby="ar-heading" className="rounded-card bg-brand-paper p-4">
-        <h2 id="ar-heading" className="text-lg font-semibold">View in AR</h2>
-        {view.arModel ? (
-          <>
-            <p className="mb-3 mt-1 text-sm">
-              Place "{view.arModel.name}" on a floor or table with your phone camera.
-            </p>
-            <Suspense fallback={<p role="status">Preparing AR...</p>}>
-              <ArLauncher src={view.arModel.url} alt={view.arModel.name} />
-            </Suspense>
-          </>
-        ) : (
-          <p className="mt-1 text-sm">This experience has no visible 3D model to show in AR.</p>
-        )}
-        <p className="mt-3 text-xs text-neutral-700">
-          AR currently places the first visible model only. Position, rotation and scale from the
-          editor are not applied in AR yet, and sound may not play inside the phone's AR viewer.
-          Full multi-object AR is planned.
-        </p>
-      </section>
-
-      <DeviceCheck />
-    </Frame>
-  )
+  return <ExperienceView ready={state} />
 }

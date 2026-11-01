@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
-import { formatBytes } from '../assets/fileRules'
+import { formatBytes } from './fileRules'
 import type { Asset } from '../../types/asset'
 
 type AssetLibraryPanelProps = {
@@ -21,7 +21,10 @@ export function AssetLibraryPanel({ assets, full, onAddModel, onAddAudio }: Asse
           <li key={asset.id} className="flex items-center justify-between gap-2 text-sm">
             <span className="min-w-0 break-words">
               {asset.originalName}
-              <span className="block text-xs text-neutral-700">{formatBytes(asset.sizeBytes)}</span>
+                           <span className="block text-xs text-neutral-700">
+                {formatBytes(asset.sizeBytes)}
+                {asset.kind === 'model' && asset.sizeBytes > 15 * 1024 * 1024 && ' · large: may be slow on phones'}
+              </span>
             </span>
             <Button variant="outline" disabled={full} onClick={() => onAdd(asset)} aria-label={`Add ${asset.originalName} to the scene`}>
               Add

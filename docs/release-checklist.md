@@ -38,3 +38,7 @@ Do not deploy publicly until all of these are done:
 - [ ] Merge the model loaders (editor viewport and lab) and the public page loading logic into one shared version
 - [ ] Decide whether the /lab/ar page becomes the main player or is removed before launch
 - [ ] Re-check ARCore/Play Services behaviour on more than one Android phone
+- [ ] Find the cause of the iPhone crash ("A problem repeatedly occurred"); test in real Safari with a very small model
+- [ ] Test audio on a real iPhone with an MP3 file
+- [ ] Server-side USDZ or model optimisation for iPhone Quick Look, and for multi-object scenes on iPhone
+- [ ] Measure frame rate and memory of the public page and the AR lab on a mid-range Android phone

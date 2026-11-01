@@ -21,3 +21,16 @@ export async function checkImmersiveAr(): Promise<boolean> {
     return false
   }
 }
+// Returns the name of the app when the page is opened inside another app's browser.
+export function detectInAppBrowser(userAgent: string): string | null {
+  if (/Instagram/i.test(userAgent)) return 'Instagram'
+  if (/FBAN|FBAV|FB_IAB/i.test(userAgent)) return 'Facebook'
+  if (/Snapchat/i.test(userAgent)) return 'Snapchat'
+  if (/TikTok|musical_ly|BytedanceWebview/i.test(userAgent)) return 'TikTok'
+  if (/LinkedInApp/i.test(userAgent)) return 'LinkedIn'
+  if (/MicroMessenger/i.test(userAgent)) return 'WeChat'
+  if (/Line\//i.test(userAgent)) return 'LINE'
+  if (/\bGSA\//i.test(userAgent)) return 'the Google app'
+  if (/; wv\)/i.test(userAgent)) return 'another app'
+  return null
+}

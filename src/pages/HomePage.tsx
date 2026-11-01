@@ -3,31 +3,47 @@ import { StatusBadge } from '../components/ui/StatusBadge'
 import { howItWorks, useCases } from '../features/marketing/content'
 import { DemoViewer } from '../features/publishing/DemoViewer'
 
+const marqueeText = 'We Are XR Optimizers |'
+
 export function HomePage() {
   return (
     <div className="space-y-14">
-      <section className="rounded-card bg-brand-ink p-8 text-brand-paper md:p-12">
-        <StatusBadge tone="info" label="In development" />
-        <h1 className="mt-4 text-4xl font-semibold uppercase leading-tight md:text-6xl">
-          Plinkmind
-          <br />
-          AR Studio
-        </h1>
-        <p className="mt-6 max-w-xl text-lg text-brand-warm">
-          A browser-based studio being built so you can upload 3D models, add sound, publish, and
-          share AR experiences through a link or a QR code.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <ButtonLink to="/features" variant="light">See planned features</ButtonLink>
-          <ButtonLink to="/dashboard" variant="outlineLight">Open Dashboard</ButtonLink>
+      <section className="overflow-hidden rounded-card bg-brand-ink text-brand-paper">
+        <div className="p-8 md:p-12">
+          <StatusBadge tone="info" label="In development · closed beta" />
+          <h1 className="mt-4 text-4xl font-semibold uppercase leading-tight md:text-6xl">
+            Plinkmind
+            <br />
+            AR Studio
+          </h1>
+          <p className="mt-6 max-w-xl text-lg text-brand-warm">
+            A browser-based studio to upload 3D models, add sound, publish, and share AR experiences
+            through a link or a QR code.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <ButtonLink to="/features" variant="light">See planned features</ButtonLink>
+            <ButtonLink to="/dashboard" variant="outlineLight">Open dashboard</ButtonLink>
+          </div>
+        </div>
+
+        <div aria-hidden="true" className="overflow-hidden border-t border-white/15 py-4 text-brand-warm">
+          <div className="marquee-track whitespace-nowrap text-3xl font-semibold uppercase tracking-tight md:text-5xl">
+            {[0, 1].map((half) => (
+              <div key={half} className="flex shrink-0">
+                {Array.from({ length: 4 }, (_, index) => (
+                  <span key={index} className="px-6">{marqueeText}</span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-            <DemoViewer />
+      <DemoViewer />
+
       <section aria-labelledby="how-heading">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <h2 id="how-heading" className="text-2xl font-semibold">How it will work</h2>
-          <StatusBadge tone="planned" label="Planned" />
+          <h2 id="how-heading" className="text-2xl font-semibold">How it works</h2>
         </div>
         <ol className="grid gap-4 md:grid-cols-4">
           {howItWorks.map((step, index) => (

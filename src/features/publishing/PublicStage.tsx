@@ -22,18 +22,22 @@ export default function PublicStage({ models, urls, missing }: PublicStageProps)
     const container = containerRef.current
     if (!container || !webglOk) return
 
-    const engine = new ViewportEngine(container, {
-      onSelect: () => undefined,
-      onTransformEnd: () => undefined,
-      onAssetFailed: () => undefined,
-      onSettled: () => {
-        // Fit everything on screen once, as soon as all models have finished loading.
-        if (!framedRef.current) {
-          framedRef.current = true
-          engine.frame(null)
-        }
+    const engine = new ViewportEngine(
+      container,
+      {
+        onSelect: () => undefined,
+        onTransformEnd: () => undefined,
+        onAssetFailed: () => undefined,
+        onSettled: () => {
+          // Fit everything on screen once, as soon as all models have finished loading.
+          if (!framedRef.current) {
+            framedRef.current = true
+            engine.frame(null)
+          }
+        },
       },
-    })
+      { maxPixelRatio: 1.5 }, // phones have very dense screens; this keeps drawing light
+    )
     engineRef.current = engine
 
     return () => {
@@ -56,12 +60,12 @@ export default function PublicStage({ models, urls, missing }: PublicStageProps)
   }
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <div
         ref={containerRef}
         role="img"
         aria-label="3D view of the experience"
-        className="h-[55vh] min-h-[320px] w-full overflow-hidden rounded-card bg-neutral-200"
+        className="h-[55vh] min-h-[320px] w-full min-w-0 overflow-hidden rounded-card bg-neutral-200"
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="outline" onClick={() => engineRef.current?.frame(null)}>
