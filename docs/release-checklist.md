@@ -42,3 +42,7 @@ Do not deploy publicly until all of these are done:
 - [ ] Test audio on a real iPhone with an MP3 file
 - [ ] Server-side USDZ or model optimisation for iPhone Quick Look, and for multi-object scenes on iPhone
 - [ ] Measure frame rate and memory of the public page and the AR lab on a mid-range Android phone
+- [ ] Decide whether to keep the /diag page (it shows only device info, nothing is sent)
+- [ ] If supabase.co is blocked on some Indian networks: add a same-origin proxy through our Cloudflare Worker, or a Supabase custom domain (check cost first)
+- [ ] Keep Three.js out of the first page load (check the main JS size after every build; it should stay near 700 kB)
+- [ ] Custom domain for the app (the workers.dev address contains the account name)

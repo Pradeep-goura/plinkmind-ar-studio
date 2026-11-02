@@ -1,10 +1,11 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { PublicLayout } from '../../components/layout/PublicLayout'
 import { RequireAuth } from '../../features/auth/RequireAuth'
-import { ArLabPage } from '../../pages/ArLabPage'
 import { AssetsPage } from '../../pages/AssetsPage'
 import { DashboardPage } from '../../pages/DashboardPage'
+import { DiagnosticsPage } from '../../pages/DiagnosticsPage'
 import { EditorPage } from '../../pages/EditorPage'
 import { FeaturesPage } from '../../pages/FeaturesPage'
 import { ForgotPasswordPage } from '../../pages/ForgotPasswordPage'
@@ -16,6 +17,11 @@ import { RegisterPage } from '../../pages/RegisterPage'
 import { ResetPasswordPage } from '../../pages/ResetPasswordPage'
 import { SignInPage } from '../../pages/SignInPage'
 import { TermsPage } from '../../pages/TermsPage'
+
+// The AR lab pulls in all of Three.js, so it is only downloaded when someone opens it.
+const ArLabPage = lazy(() =>
+  import('../../pages/ArLabPage').then((module) => ({ default: module.ArLabPage })),
+)
 
 export function AppRouter() {
   return (
@@ -33,9 +39,17 @@ export function AppRouter() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      {/* The public AR page and the experimental AR player: NO site header. */}
+      {/* Pages without the site header: the public AR page, the AR lab and the device check. */}
       <Route path="/experience/:slug" element={<PublicExperiencePage />} />
-      <Route path="/lab/ar/:slug" element={<ArLabPage />} />
+      <Route
+        path="/lab/ar/:slug"
+        element={
+          <Suspense fallback={<p role="status" className="p-8">Loading...</p>}>
+            <ArLabPage />
+          </Suspense>
+        }
+      />
+      <Route path="/diag" element={<DiagnosticsPage />} />
 
       {/* Pages that need a login. */}
       <Route element={<RequireAuth />}>
