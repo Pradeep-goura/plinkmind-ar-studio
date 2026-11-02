@@ -2,6 +2,7 @@ import { ButtonLink } from '../components/ui/Button'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { howItWorks, useCases } from '../features/marketing/content'
 import { DemoViewer } from '../features/publishing/DemoViewer'
+import { HeroModel } from '../features/publishing/HeroModel'
 
 const marqueeText = 'We Are XR Optimizers |'
 
@@ -9,21 +10,24 @@ export function HomePage() {
   return (
     <div className="space-y-14">
       <section className="overflow-hidden rounded-card bg-brand-ink text-brand-paper">
-        <div className="p-8 md:p-12">
-          <StatusBadge tone="info" label="In development · closed beta" />
-          <h1 className="mt-4 text-4xl font-semibold uppercase leading-tight md:text-6xl">
-            Plinkmind
-            <br />
-            AR Studio
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-brand-warm">
-            A browser-based studio to upload 3D models, add sound, publish, and share AR experiences
-            through a link or a QR code.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink to="/features" variant="light">See planned features</ButtonLink>
-            <ButtonLink to="/dashboard" variant="outlineLight">Open dashboard</ButtonLink>
+        <div className="grid items-center gap-8 p-8 md:grid-cols-2 md:p-12">
+          <div>
+            <StatusBadge tone="info" label="In development · closed beta" />
+            <h1 className="mt-4 text-4xl font-semibold uppercase leading-tight md:text-6xl">
+              Plinkmind
+              <br />
+              AR Studio
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-brand-warm">
+              A browser-based studio to upload 3D models, add sound, publish, and share AR
+              experiences through a link or a QR code.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <ButtonLink to="/features" variant="light">See planned features</ButtonLink>
+              <ButtonLink to="/dashboard" variant="outlineLight">Open dashboard</ButtonLink>
+            </div>
           </div>
+          <HeroModel />
         </div>
 
         <div aria-hidden="true" className="overflow-hidden border-t border-white/15 py-4 text-brand-warm">

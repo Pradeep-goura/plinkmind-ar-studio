@@ -46,3 +46,6 @@ Do not deploy publicly until all of these are done:
 - [ ] If supabase.co is blocked on some Indian networks: add a same-origin proxy through our Cloudflare Worker, or a Supabase custom domain (check cost first)
 - [ ] Keep Three.js out of the first page load (check the main JS size after every build; it should stay near 700 kB)
 - [ ] Custom domain for the app (the workers.dev address contains the account name)
+- [ ] Check the licence of every sample model used on the home page (CC BY needs credit to the creator)
+- [ ] Test the home page hero on a real iPhone and on a low-end Android phone (auto-load rules, full screen)
+- [ ] Full screen is not available on iPhone Safari; confirm the button is hidden there

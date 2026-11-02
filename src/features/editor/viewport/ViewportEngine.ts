@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { TransformControls } from 'three/addons/controls/TransformControls.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
@@ -18,7 +19,13 @@ type EngineCallbacks = {
   onSettled?: () => void
 }
 
-type EngineOptions = { maxPixelRatio?: number }
+type EngineOptions = {
+  maxPixelRatio?: number
+  transparent?: boolean // no background colour: the page behind shows through
+  showGrid?: boolean
+  environment?: boolean // soft all-round lighting, for a more realistic look
+  autoRotate?: boolean // slowly turns until the visitor touches it
+}
 
 type Entry = {
   id: string
@@ -62,6 +69,8 @@ export class ViewportEngine {
   private readonly placeholderGeometry = new THREE.BoxGeometry(1, 1, 1)
   private readonly pendingMaterial = new THREE.MeshBasicMaterial({ color: 0x4f7cff, transparent: true, opacity: 0.3 })
   private readonly errorMaterial = new THREE.MeshBasicMaterial({ color: 0xd32f2f, transparent: true, opacity: 0.4 })
+  private environmentTarget: THREE.WebGLRenderTarget | null = null
+  private resumeTimer: number | undefined
   private pointerStart: { x: number; y: number } | null = null
   private needsRender = true
   private disposed = false
@@ -70,9 +79,11 @@ export class ViewportEngine {
     this.container = container
     this.callbacks = callbacks
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true })
+    const transparent = options.transparent ?? false
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: transparent })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.maxPixelRatio ?? 2))
-    this.renderer.setClearColor(0xe5e5e5)
+    if (transparent) this.renderer.setClearColor(0x000000, 0)
+    else this.renderer.setClearColor(0xe5e5e5)
     const canvas = this.renderer.domElement
     // The canvas always fills the container. Its own pixel size can never push the page wider.
     canvas.style.display = 'block'
@@ -80,15 +91,18 @@ export class ViewportEngine {
     canvas.style.height = '100%'
     container.appendChild(canvas)
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 1.2))
-    const sun = new THREE.DirectionalLight(0xffffff, 2)
+    const lit = options.environment === true
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, lit ? 0.35 : 1.2))
+    const sun = new THREE.DirectionalLight(0xffffff, lit ? 0.8 : 2)
     sun.position.set(3, 5, 4)
     this.scene.add(sun)
-    this.scene.add(new THREE.GridHelper(20, 40, 0x888888, 0xcccccc))
+    if (options.showGrid ?? true) this.scene.add(new THREE.GridHelper(20, 40, 0x888888, 0xcccccc))
+    if (lit) this.addEnvironment()
 
     this.orbit = new OrbitControls(this.camera, canvas)
     this.orbit.enableDamping = true
     this.orbit.addEventListener('change', () => this.requestRender())
+    if (options.autoRotate) this.enableAutoRotate()
     this.resetView()
 
     this.transform = new TransformControls(this.camera, canvas)
@@ -112,10 +126,35 @@ export class ViewportEngine {
     this.resize()
 
     this.renderer.setAnimationLoop(() => {
-      this.orbit.update()
-      if (!this.needsRender) return
+      const moved = this.orbit.update()
+      if (!this.needsRender && !moved) return
       this.needsRender = false
       this.renderer.render(this.scene, this.camera)
+    })
+  }
+
+  private addEnvironment() {
+    const generator = new THREE.PMREMGenerator(this.renderer)
+    const room = new RoomEnvironment()
+    this.environmentTarget = generator.fromScene(room, 0.04)
+    this.scene.environment = this.environmentTarget.texture
+    room.dispose()
+    generator.dispose()
+  }
+
+  // Turns slowly. A touch stops it, and it starts again after 3 quiet seconds.
+  private enableAutoRotate() {
+    this.orbit.autoRotate = true
+    this.orbit.autoRotateSpeed = 1.5
+    this.orbit.addEventListener('start', () => {
+      this.orbit.autoRotate = false
+      window.clearTimeout(this.resumeTimer)
+    })
+    this.orbit.addEventListener('end', () => {
+      window.clearTimeout(this.resumeTimer)
+      this.resumeTimer = window.setTimeout(() => {
+        this.orbit.autoRotate = true
+      }, 3000)
     })
   }
 
@@ -124,10 +163,10 @@ export class ViewportEngine {
   }
 
   private resize() {
-    const width = this.container.clientWidth
+    const width = Math.max(this.container.clientWidth, 1)
     const height = Math.max(this.container.clientHeight, 1)
     this.renderer.setSize(width, height, false)
-    this.camera.aspect = width / Math.max(width > 0 ? height : 1, 1)
+    this.camera.aspect = width / height
     this.camera.updateProjectionMatrix()
     this.requestRender()
   }
@@ -338,6 +377,7 @@ export class ViewportEngine {
 
   dispose() {
     this.disposed = true
+    window.clearTimeout(this.resumeTimer)
     this.renderer.setAnimationLoop(null)
     this.observer.disconnect()
     const canvas = this.renderer.domElement
@@ -352,6 +392,7 @@ export class ViewportEngine {
     this.placeholderGeometry.dispose()
     this.pendingMaterial.dispose()
     this.errorMaterial.dispose()
+    this.environmentTarget?.dispose()
     this.draco.dispose()
     this.renderer.dispose()
     canvas.remove()
