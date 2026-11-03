@@ -49,3 +49,5 @@ Do not deploy publicly until all of these are done:
 - [ ] Check the licence of every sample model used on the home page (CC BY needs credit to the creator)
 - [ ] Test the home page hero on a real iPhone and on a low-end Android phone (auto-load rules, full screen)
 - [ ] Full screen is not available on iPhone Safari; confirm the button is hidden there
+- [ ] Warn at upload time when a GLB contains textures larger than 2048 px (read the GLB header)
+- [ ] Confirm the license of the model on the home page hero allows edited copies

@@ -121,7 +121,7 @@ export function HeroModel() {
         models={state.view.models}
         urls={state.urls}
         missing={state.view.missing}
-        slug={state.experience.slug}
+        
       />
     </Suspense>
   )

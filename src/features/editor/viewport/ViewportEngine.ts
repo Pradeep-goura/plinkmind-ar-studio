@@ -25,6 +25,7 @@ type EngineOptions = {
   showGrid?: boolean
   environment?: boolean // soft all-round lighting, for a more realistic look
   autoRotate?: boolean // slowly turns until the visitor touches it
+    scrollFriendly?: boolean // vertical swipes scroll the page instead of turning the model
 }
 
 type Entry = {
@@ -100,6 +101,7 @@ export class ViewportEngine {
     if (lit) this.addEnvironment()
 
     this.orbit = new OrbitControls(this.camera, canvas)
+        if (options.scrollFriendly) canvas.style.touchAction = 'pan-y'
     this.orbit.enableDamping = true
     this.orbit.addEventListener('change', () => this.requestRender())
     if (options.autoRotate) this.enableAutoRotate()

@@ -3,6 +3,7 @@ import { StatusBadge } from '../components/ui/StatusBadge'
 import { howItWorks, useCases } from '../features/marketing/content'
 import { DemoViewer } from '../features/publishing/DemoViewer'
 import { HeroModel } from '../features/publishing/HeroModel'
+import { Reveal } from '../components/ui/Reveal'
 
 const marqueeText = 'We Are XR Optimizers |'
 
@@ -43,6 +44,7 @@ export function HomePage() {
         </div>
       </section>
 
+      <Reveal>
       <DemoViewer />
 
       <section aria-labelledby="how-heading">
@@ -90,6 +92,7 @@ export function HomePage() {
           </a>
         </p>
       </section>
+      </Reveal>
     </div>
   )
 }

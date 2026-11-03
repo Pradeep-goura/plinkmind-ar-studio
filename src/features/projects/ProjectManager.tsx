@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
+import { Skeleton } from '../../components/ui/Skeleton'
 import { TextField } from '../../components/ui/TextField'
 import { errorMessage } from '../../lib/utils/errors'
 import { firstError, projectNameSchema } from '../../lib/validation/forms'
 import type { Project, ProjectStatus, TrackingMode } from '../../types/project'
+import { listAssets } from '../assets/assetsApi'
 import { useAuth } from '../auth/useAuth'
 import { listPublishInfo, publishProject, unpublishProject } from '../publishing/publishApi'
 import type { PublishInfo } from '../publishing/publishApi'
+import { OnboardingChecklist } from './OnboardingChecklist'
+import { buildOnboardingSteps } from './onboardingSteps'
 import { ProjectCard } from './ProjectCard'
 import {
   createProject,
@@ -18,12 +22,17 @@ import {
   listProjects,
   renameProject,
 } from './projectsApi'
-import { Skeleton } from '../../components/ui/Skeleton'
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; workspaceId: string; projects: Project[]; publish: PublishInfo[] }
+  | {
+      status: 'ready'
+      workspaceId: string
+      projects: Project[]
+      publish: PublishInfo[]
+      assetCount: number
+    }
 
 type NoticeState = { tone: 'success' | 'error'; text: string }
 
@@ -42,12 +51,15 @@ export function ProjectManager() {
 
     async function load(id: string) {
       try {
-        const [workspaceId, projects, publish] = await Promise.all([
+        const [workspaceId, projects, publish, assets] = await Promise.all([
           getWorkspaceId(id),
           listProjects(),
           listPublishInfo(),
+          listAssets(),
         ])
-        if (!ignore) setState({ status: 'ready', workspaceId, projects, publish })
+        if (!ignore) {
+          setState({ status: 'ready', workspaceId, projects, publish, assetCount: assets.length })
+        }
       } catch (error) {
         if (!ignore) setState({ status: 'error', message: errorMessage(error) })
       }
@@ -174,7 +186,7 @@ export function ProjectManager() {
     })
   }
 
-    if (state.status === 'loading') {
+  if (state.status === 'loading') {
     return (
       <div role="status" className="space-y-4">
         <span className="sr-only">Loading your projects</span>
@@ -198,14 +210,19 @@ export function ProjectManager() {
     )
   }
 
+  // Everything below this line runs only when the data is ready.
   const visibleProjects = state.projects.filter((project) => {
     const matchesName = project.name.toLowerCase().includes(query.trim().toLowerCase())
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter
     return matchesName && matchesStatus
   })
 
+  const steps = buildOnboardingSteps(state.assetCount, state.projects, state.publish)
+
   return (
     <div className="space-y-6">
+      <OnboardingChecklist steps={steps} />
+
       <form onSubmit={handleCreate} className="grid gap-3 rounded-card bg-brand-paper p-5 sm:grid-cols-[1fr_220px_auto] sm:items-end">
         <TextField id="new-project-name" name="name" label="New project name" required />
         <div>
