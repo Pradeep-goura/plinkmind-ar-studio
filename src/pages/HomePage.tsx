@@ -1,9 +1,9 @@
 import { ButtonLink } from '../components/ui/Button'
+import { Reveal } from '../components/ui/Reveal'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { howItWorks, useCases } from '../features/marketing/content'
 import { DemoViewer } from '../features/publishing/DemoViewer'
 import { HeroModel } from '../features/publishing/HeroModel'
-import { Reveal } from '../components/ui/Reveal'
 
 const marqueeText = 'We Are XR Optimizers |'
 
@@ -44,54 +44,61 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Each block gets its OWN Reveal, so the gap between blocks is kept. */}
       <Reveal>
-      <DemoViewer />
+        <DemoViewer />
+      </Reveal>
 
-      <section aria-labelledby="how-heading">
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <h2 id="how-heading" className="text-2xl font-semibold">How it works</h2>
-        </div>
-        <ol className="grid gap-4 md:grid-cols-4">
-          {howItWorks.map((step, index) => (
-            <li key={step.title} className="rounded-card bg-brand-paper p-5">
-              <p className="text-sm font-medium text-neutral-700">Step {index + 1}</p>
-              <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
-              <p className="mt-2 text-sm">{step.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <Reveal>
+        <section aria-labelledby="how-heading">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <h2 id="how-heading" className="text-2xl font-semibold">How it works</h2>
+          </div>
+          <ol className="grid gap-4 md:grid-cols-4">
+            {howItWorks.map((step, index) => (
+              <li key={step.title} className="rounded-card bg-brand-paper p-5">
+                <p className="text-sm font-medium text-neutral-700">Step {index + 1}</p>
+                <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
+                <p className="mt-2 text-sm">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </Reveal>
 
-      <section aria-labelledby="use-heading">
-        <h2 id="use-heading" className="text-2xl font-semibold">Potential use cases</h2>
-        <p className="mt-1 text-sm text-neutral-800">
-          These are areas where AR can help. They are not claims about existing customers.
-        </p>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-          {useCases.map((useCase) => (
-            <li key={useCase} className="rounded-md bg-brand-paper p-4 text-sm font-medium">
-              {useCase}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <Reveal>
+        <section aria-labelledby="use-heading">
+          <h2 id="use-heading" className="text-2xl font-semibold">Potential use cases</h2>
+          <p className="mt-1 text-sm text-neutral-800">
+            These are areas where AR can help. They are not claims about existing customers.
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+            {useCases.map((useCase) => (
+              <li key={useCase} className="rounded-md bg-brand-paper p-4 text-sm font-medium">
+                {useCase}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </Reveal>
 
-      <section aria-labelledby="contact-heading" className="rounded-card bg-brand-paper p-6">
-        <h2 id="contact-heading" className="text-2xl font-semibold">Contact</h2>
-        <p className="mt-2 text-sm">
-          There is no enquiry form yet. For now, please reach Plinkmind through its main website.
-        </p>
-        <p className="mt-3">
-          <a
-            href="https://www.plinkmind.world/"
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-brand-link underline"
-          >
-            Visit plinkmind.world
-          </a>
-        </p>
-      </section>
+      <Reveal>
+        <section aria-labelledby="contact-heading" className="rounded-card bg-brand-paper p-6">
+          <h2 id="contact-heading" className="text-2xl font-semibold">Contact</h2>
+          <p className="mt-2 text-sm">
+            There is no enquiry form yet. For now, please reach Plinkmind through its main website.
+          </p>
+          <p className="mt-3">
+            <a
+              href="https://www.plinkmind.world/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-brand-link underline"
+            >
+              Visit plinkmind.world
+            </a>
+          </p>
+        </section>
       </Reveal>
     </div>
   )
